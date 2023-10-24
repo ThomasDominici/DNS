@@ -1,6 +1,6 @@
 # Création DNS Debian
 
-# Sur le serveur 
+## Sur le serveur 
 
 - On installe bind9 :
 ```Bash
@@ -52,4 +52,126 @@ zone "0.168.192.in-addr.arpa" IN {
 
 
 - On va maintenant configurer les zones **forward** et **reverse**.
-- 
+- On utilise les sample zone files (db.local pour forward et db.127 pour reverse)
+- Pour le **forward lookup zone file** : 
+```Bash
+$ cd /etc/bind
+$ sudo cp db.local forward.linuxtechi.local
+$ sudo nano forward.linuxtechi.local
+$TTL 604800
+@ IN SOA primary.linuxtechi.local. root.primary.linuxtechi.local. (
+         2022072651 ; Serial
+         3600 ; Refresh
+         1800 ; Retry
+         604800 ; Expire
+         604600 ) ; Negative Cache TTL
+;Name Server Information
+@ IN NS primary.linuxtechi.local.
+
+;IP address of Your Domain Name Server(DNS)
+primary IN A 192.168.0.40
+
+;Mail Server MX (Mail exchanger) Record
+linuxtechi.local. IN MX 10 mail.linuxtechi.local.
+
+;A Record for Host names
+www IN A 192.168.0.50
+mail IN A 192.168.0.60
+
+;CNAME Record
+ftp IN CNAME www.linuxtechi.local.
+```
+
+- Pour le **reverse lookup zone file** :
+```Bash
+$ sudo cp db.127 reverse.linuxtechi.local
+$ sudo nano /etc/bind/reverse.linuxtechi.local
+$TTL 86400
+@ IN SOA linuxtechi.local. root.linuxtechi.local. (
+         2022072752 ;Serial
+         3600 ;Refresh
+         1800 ;Retry
+         604800 ;Expire
+         86400 ;Minimum TTL
+)
+;Your Name Server Info  
+@ IN NS primary.linuxtechi.local.  
+primary IN A 192.168.0.40  
+;Reverse Lookup for Your DNS Server  
+40 IN PTR primary.linuxtechi.local.  
+;PTR Record IP address to HostName  
+50 IN PTR www.linuxtechi.local.  
+60 IN PTR mail.linuxtechi.local.  
+```
+
+- On modifie ensuite les options dans le fichier /etc/default/named :
+```Bash
+OPTIONS="-u bind -4"
+```
+
+Puis on lance et on active le **named** pour que cette configuration soit lancée au démarrage du serveur : 
+```Bash
+$ sudo systemctl start named
+$ sudo systemctl enable named
+```
+
+- Pour voir le statut du service bind :
+```Bash
+$ sudo systemctl status named
+```
+
+- Si on doit désactiver le parefeu :
+```Bash
+$ sudo ufw allow 53  
+Rule added  
+Rule added (v6)
+```
+
+- Pour vérifier les syntaxes :
+- Pour **named.conf.local** :
+```Bash
+$ sudo named-checkconf /etc/bind/named.conf.local
+```
+
+- Pour les **forward et reverse lookup zone** :
+```Bash
+$ sudo named-checkzone linuxtechi.local /etc/bind/forward.linuxtechi.local
+# Affiche :zone linuxtechi.local/IN: loaded serial 2022072651
+# Affiche : OK
+
+$ sudo named-checkzone linuxtechi.local /etc/bind/reverse.linuxtechi.local
+# Affiche : zone linuxtechi.local/IN: loaded serial 2022072752
+# Affiche : OK
+
+```
+
+
+## Sur le client : 
+
+
+- On inscrit le serveur DNS manuellement dans la partie IPv4 --> DNS manuel
+- On configure le fichier **/etc/resolv.conf** :
+```Bash
+linuxtechi@nixworld:~$ sudo vi /etc/resolv.conf
+search linuxtechi.local
+nameserver 192.168.0.40
+```
+
+- On teste avec **dig** :
+```Bash
+$ dig primary.linuxtechi.local
+```
+
+- Pour tester le reverse :
+```Bash
+$ dig -x 192.168.0.40
+```
+
+- Pour tester la sortie de la commande **dig** :
+```Bash
+nslookup primary.linuxtechi.local
+```
+
+
+
+
