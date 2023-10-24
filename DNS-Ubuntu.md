@@ -38,14 +38,14 @@ options {
 $ sudo nano named.conf.local
 
 
-zone "linuxtechi.local" IN {
+zone "wilders.lan" IN {
         type master;
-        file "/etc/bind/forward.linuxtechi.local";
+        file "/etc/bind/forward.wilders.lan";
         allow-update { none; };
 };
 zone "0.168.192.in-addr.arpa" IN {
         type master;
-        file "/etc/bind/reverse.linuxtechi.local";
+        file "/etc/bind/reverse.wilders.lan";
         allow-update { none; };
 };
 ```
@@ -56,38 +56,38 @@ zone "0.168.192.in-addr.arpa" IN {
 - Pour le **forward lookup zone file** : 
 ```Bash
 $ cd /etc/bind
-$ sudo cp db.local forward.linuxtechi.local
-$ sudo nano forward.linuxtechi.local
+$ sudo cp db.local forward.wilders.lan
+$ sudo nano forward.wilders.lan
 $TTL 604800
-@ IN SOA primary.linuxtechi.local. root.primary.linuxtechi.local. (
+@ IN SOA primary.linuxtechi.local. root.primary.wilders.lan. (
          2022072651 ; Serial
          3600 ; Refresh
          1800 ; Retry
          604800 ; Expire
          604600 ) ; Negative Cache TTL
 ;Name Server Information
-@ IN NS primary.linuxtechi.local.
+@ IN NS primary.wilders.lan.
 
 ;IP address of Your Domain Name Server(DNS)
 primary IN A 192.168.0.40
 
 ;Mail Server MX (Mail exchanger) Record
-linuxtechi.local. IN MX 10 mail.linuxtechi.local.
+wilders.lan. IN MX 10 mail.linuxtechi.local.
 
 ;A Record for Host names
 www IN A 192.168.0.50
 mail IN A 192.168.0.60
 
 ;CNAME Record
-ftp IN CNAME www.linuxtechi.local.
+ftp IN CNAME www.wilders.lan.
 ```
 
 - Pour le **reverse lookup zone file** :
 ```Bash
-$ sudo cp db.127 reverse.linuxtechi.local
-$ sudo nano /etc/bind/reverse.linuxtechi.local
+$ sudo cp db.127 reverse.wilders.lan
+$ sudo nano /etc/bind/reverse.wilders.lan
 $TTL 86400
-@ IN SOA linuxtechi.local. root.linuxtechi.local. (
+@ IN SOA linuxtechi.local. root.wilders.lan. (
          2022072752 ;Serial
          3600 ;Refresh
          1800 ;Retry
@@ -95,13 +95,13 @@ $TTL 86400
          86400 ;Minimum TTL
 )
 ;Your Name Server Info  
-@ IN NS primary.linuxtechi.local.  
+@ IN NS primary.wilders.lan.  
 primary IN A 192.168.0.40  
 ;Reverse Lookup for Your DNS Server  
-40 IN PTR primary.linuxtechi.local.  
+40 IN PTR primary.wilders.lan.  
 ;PTR Record IP address to HostName  
-50 IN PTR www.linuxtechi.local.  
-60 IN PTR mail.linuxtechi.local.  
+50 IN PTR www.wilders.lan.  
+60 IN PTR mail.wilders.lan.
 ```
 
 - On modifie ensuite les options dans le fichier /etc/default/named :
@@ -135,12 +135,12 @@ $ sudo named-checkconf /etc/bind/named.conf.local
 
 - Pour les **forward et reverse lookup zone** :
 ```Bash
-$ sudo named-checkzone linuxtechi.local /etc/bind/forward.linuxtechi.local
-# Affiche :zone linuxtechi.local/IN: loaded serial 2022072651
+$ sudo named-checkzone wilders.lan /etc/bind/forward.wilders.lan
+# Affiche :zone wilders.lan/IN: loaded serial 2022072651
 # Affiche : OK
 
-$ sudo named-checkzone linuxtechi.local /etc/bind/reverse.linuxtechi.local
-# Affiche : zone linuxtechi.local/IN: loaded serial 2022072752
+$ sudo named-checkzone wilders.lan /etc/bind/reverse.wilders.lan
+# Affiche : zone wilders.lan/IN: loaded serial 2022072752
 # Affiche : OK
 
 ```
@@ -152,14 +152,14 @@ $ sudo named-checkzone linuxtechi.local /etc/bind/reverse.linuxtechi.local
 - On inscrit le serveur DNS manuellement dans la partie IPv4 --> DNS manuel
 - On configure le fichier **/etc/resolv.conf** :
 ```Bash
-linuxtechi@nixworld:~$ sudo vi /etc/resolv.conf
-search linuxtechi.local
+$ sudo nano /etc/resolv.conf
+search wilders.lan
 nameserver 192.168.0.40
 ```
 
 - On teste avec **dig** :
 ```Bash
-$ dig primary.linuxtechi.local
+$ dig primary.wilders.lan
 ```
 
 - Pour tester le reverse :
@@ -169,7 +169,7 @@ $ dig -x 192.168.0.40
 
 - Pour tester la sortie de la commande **dig** :
 ```Bash
-nslookup primary.linuxtechi.local
+nslookup primary.wilders.lan
 ```
 
 
